@@ -1,0 +1,41 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Install Backend Dependencies
+      run: |
+        cd app/backend
+        npm install
+    
+    - name: Run Security Scan with Trivy
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: 'app/backend'
+        severity: 'CRITICAL,HIGH'
+    
+    - name: Build Docker Images
+      run: |
+        docker build -t securecloud-backend:latest app/backend/
+        docker build -t securecloud-frontend:latest app/frontend/
+    
+    - name: Docker Security Scan
+      run: |
+        trivy image securecloud-backend:latest --severity HIGH,CRITICAL --exit-code 0
+        trivy image securecloud-frontend:latest --severity HIGH,CRITICAL --exit-code 0
