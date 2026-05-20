@@ -1,0 +1,63 @@
+---
+- name: Setup DevOps Environment
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Install Docker Compose
+      get_url:
+        url: https://github.com/docker/compose/releases/download/v2.23.0/docker-compose-linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Install Git
+      apt:
+        name: git
+        state: present
+
+    - name: Install Node.js
+      shell: |
+        curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+        apt-get install -y nodejs
+
+    - name: Start Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add ubuntu user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Create project directory
+      file:
+        path: /home/ubuntu/SecureCloud-Inventory
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+
+    - name: Copy application files
+      synchronize:
+        src: ../SecureCloud-Inventory/
+        dest: /home/ubuntu/SecureCloud-Inventory/
+        delete: yes
+      delegate_to: localhost
+
+    - name: Run Docker Compose
+      docker_compose:
+        project_src: /home/ubuntu/SecureCloud-Inventory/docker
+        state: present
+        restarted: yes

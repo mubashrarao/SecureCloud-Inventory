@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6
+    container_name: inventory-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - inventory-network
+    restart: unless-stopped
+
+  backend:
+    build: ../app/backend
+    container_name: inventory-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - JWT_SECRET=SecureCloud2024SecretKey
+    depends_on:
+      - mongodb
+    networks:
+      - inventory-network
+    restart: unless-stopped
+
+  frontend:
+    build: ../app/frontend
+    container_name: inventory-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - inventory-network
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+
+networks:
+  inventory-network:
+    driver: bridge

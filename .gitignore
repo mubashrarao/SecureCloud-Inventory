@@ -1,0 +1,11 @@
+# Large files
+*.zip
+terraform/.terraform/
+terraform/terraform.tfstate*
+*.pem
+node_modules/
+**/node_modules/
+.DS_Store
+*.log
+.env
+aws/

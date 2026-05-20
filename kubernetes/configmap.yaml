@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: securecloud
+data:
+  backend_port: "5000"
+  mongodb_host: "mongodb-service"
+  mongodb_port: "27017"
